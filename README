@@ -1,0 +1,7 @@
+This is a MediaWiki extension to allow you to add hashtags
+to edit summaries (e.g. putting #foo in the edit summary).
+
+They will then be linked and various pages will be filterable
+based on them.
+
+Please see https://mediawiki.org/wiki/Extension:Hashtags for more details.

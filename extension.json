@@ -1,0 +1,49 @@
+{
+	"name": "Hashtags",
+	"version": "0.1",
+	"author": [
+		"Brian Wolff"
+	],
+	"url": "https://www.mediawiki.org/wiki/Extension:Hashtags",
+	"descriptionmsg": "hashtags-desc",
+	"requires": {
+		"MediaWiki": ">= 1.39"
+	},
+	"license-name": "GPL-2.0-or-later",
+	"type": "other",
+	"MessagesDirs": {
+		"Hashtags": [
+			"i18n"
+		]
+	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\Hashtags\\": "src/"
+	},
+	"Hooks": {
+		"MediaWikiServices": "service",
+		"RecentChange_save": "rcsave",
+		"ListDefinedTags": "tag",
+		"ChangeTagsListActive": "tag",
+		"MessagesPreLoad": "tag"
+	},
+	"HookHandlers": {
+		"service": {
+			"class": "MediaWiki\\Extension\\Hashtags\\ServicesHooks"
+		},
+		"rcsave": {
+			"class": "MediaWiki\\Extension\\Hashtags\\RCSaveHooks",
+			"services": [
+				"CommentParserFactory"
+			]
+		},
+		"tag": {
+			"class": "MediaWiki\\Extension\\Hashtags\\TagHooks",
+			"services": [
+				"ChangeTagsStore"
+			]
+		}
+	},
+	"config": {
+	},
+	"manifest_version": 2
+}
