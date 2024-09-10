@@ -6,10 +6,8 @@ use MediaWiki\CommentFormatter\CommentParser;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkTarget;
 use RuntimeException;
-use Sanitizer;
+use MediaWiki\Parser\Sanitizer;
 use SpecialPage;
-
-// FIXME replace Sanitizer with MediaWiki\Parser\Sanitizer once drop 1.39 compat
 
 /**
  * This is our own version of Core's CommentParser.
