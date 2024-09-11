@@ -8,6 +8,7 @@ use MediaWiki\Linker\LinkTarget;
 use RuntimeException;
 use MediaWiki\Parser\Sanitizer;
 use SpecialPage;
+use MediaWiki\ChangeTags\ChangeTagsStore;
 
 /**
  * This is our own version of Core's CommentParser.
@@ -30,6 +31,8 @@ class HashtagCommentParser extends CommentParser {
 	private const MARKER_REGEX_ESCAPED = "/\x0F(?:'|&apos;|&#0?39;)(?:\"|&quot;|&#0?34;)([0-9]{7})/";
 	private CommentParser $commentParser;
 	private LinkRenderer $linkRenderer;
+	private ChangeTagsStore $changeTagsStore;
+	private bool $requireActivation;
 
 	/** @var array Map of markers -> tag names */
 	private $markerMap = [];
@@ -38,10 +41,17 @@ class HashtagCommentParser extends CommentParser {
 	/** @var int How many markers so far */
 	private $markerCount = 0;
 
-	public function __construct( CommentParser $commentParser, LinkRenderer $linkRenderer ) {
+	public function __construct(
+		CommentParser $commentParser,
+		LinkRenderer $linkRenderer,
+		ChangeTagsStore $changeTagsStore,
+		bool $requireActivation
+	) {
 		// CommentParser is technically marked @internal... but meh.
 		$this->commentParser = $commentParser;
 		$this->linkRenderer = $linkRenderer;
+		$this->requireActivation = $requireActivation;
+		$this->changeTagsStore = $changeTagsStore;
 		// Intentionally do not call parent::__construct
 	}
 
@@ -148,13 +158,20 @@ class HashtagCommentParser extends CommentParser {
 				if ( $this->isValidTag( $tag ) ) {
 					return $prefix . $this->addMarker( $tag );
 				}
-				return $prefix . $tag;
+				return $prefix . '#' . $tag;
 			},
 			$comment
 		);
 	}
 
 	private function isValidTag( string $tag ): bool {
+		if ( $this->requireActivation ) {
+			// This does not include software activated tags, only user activated.
+			// No hashtags should meet that criteria in this case, but unclear if we
+			// should still check.
+			$tags = $this->changeTagsStore->listExplicitlyDefinedTags();
+			return in_array( self::HASHTAG_PREFIX . $tag, $tags ); 
+		}
 		return true;
 	}
 

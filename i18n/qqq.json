@@ -4,5 +4,6 @@
 			"Bawolff"
 		]
 	},
-	"hashtags-desc": "{{desc|name=Hashtags}}"
+	"hashtags-desc": "{{desc|name=Hashtags}}",
+	"hashtags-tag-reserved": "Error shown if you try to create a tag on Special:Tags that starts with \"hashtag-\"."
 }

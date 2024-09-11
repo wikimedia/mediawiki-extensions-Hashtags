@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\Hashtags;
 use MediaWiki\CommentFormatter\CommentParserFactory;
 use MediaWiki\Hook\MediaWikiServicesHook;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Config\ServiceOptions;
 
 class ServicesHooks implements MediaWikiServicesHook {
 
@@ -37,6 +38,11 @@ class ServicesHooks implements MediaWikiServicesHook {
 		// Not sure if renderForComment should be on. Its some weird
 		// hack for wikibase.
 		$linkRenderer = $services->getLinkRendererFactory()->create( [ 'renderForComment' => true ] );
-		return new HashtagCommentParserFactory( $factory, $linkRenderer );
+		$changeTagsStore = $services->getChangeTagsStore();
+		$options = new ServiceOptions(
+			HashtagCommentParserFactory::CONSTRUCTOR_OPTIONS,
+			$services->getMainConfig()
+		);
+		return new HashtagCommentParserFactory( $factory, $linkRenderer, $changeTagsStore, $options );
 	}
 }

@@ -24,7 +24,8 @@
 		"RecentChange_save": "rcsave",
 		"ListDefinedTags": "tag",
 		"ChangeTagsListActive": "tag",
-		"MessagesPreLoad": "tag"
+		"MessagesPreLoad": "tag",
+		"ChangeTagCanCreate": "tag"
 	},
 	"HookHandlers": {
 		"service": {
@@ -39,11 +40,20 @@
 		"tag": {
 			"class": "MediaWiki\\Extension\\Hashtags\\TagHooks",
 			"services": [
-				"ChangeTagsStore"
+				"ChangeTagsStore",
+				"MainConfig"
 			]
 		}
 	},
 	"config": {
+		"HashtagsMakeTagsSystemManaged": {
+			"value": true,
+			"description": "Make the change tags corresponding to Hashtags be system managed. When true, users are unable to add or remove hashtag style tags via Special:EditTags or manage them with Special:Tags. Users can still remove the tags by revision deleting the edit summary."
+		},
+		"HashtagsRequireActiveTag": {
+			"value": false,
+			"description": "When true, hashtags must first be created and active in Special:Tags before being considered a valid tag. Activating a tag is not retroactive"
+		}
 	},
 	"manifest_version": 2
 }

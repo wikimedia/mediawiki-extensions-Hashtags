@@ -6,27 +6,37 @@ use MediaWiki\Cache\Hook\MessagesPreLoadHook;
 use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\ChangeTags\Hook\ChangeTagsListActiveHook;
 use MediaWiki\ChangeTags\Hook\ListDefinedTagsHook;
+use MediaWiki\Config\Config;
+use MediaWiki\ChangeTags\Hook\ChangeTagCanCreateHook;
 
-class TagHooks implements ListDefinedTagsHook, ChangeTagsListActiveHook, MessagesPreLoadHook {
+class TagHooks implements ListDefinedTagsHook, ChangeTagsListActiveHook, MessagesPreLoadHook, ChangeTagCanCreateHook {
 
 	private ChangeTagsStore $tagStore;
+	private bool $useSystemManagedTags;
+	private bool $requireUserActivate;
 
-	public function __construct( ChangeTagsStore $store ) {
+	public function __construct( ChangeTagsStore $store, Config $config ) {
 		$this->tagStore = $store;
+		$this->useSystemManagedTags = $config->get( 'HashtagsMakeTagsSystemManaged' );
+		$this->requireUserActivate = $config->get( 'HashtagsRequireActiveTag' );
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function onChangeTagsListActive( &$tags ) {
-		$tags = array_merge( $tags, $this->getUsedHashtagTags() );
+		if ( $this->useSystemManagedTags || !$this->requireUserActivate ) {
+			$tags = array_merge( $tags, $this->getUsedHashtagTags() );
+		}
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function onListDefinedTags( &$tags ) {
-		$tags = array_merge( $tags, $this->getUsedHashtagTags() );
+		if ( $this->useSystemManagedTags ) {
+			$tags = array_merge( $tags, $this->getUsedHashtagTags() );
+		}
 	}
 
 	/**
@@ -65,6 +75,19 @@ class TagHooks implements ListDefinedTagsHook, ChangeTagsListActiveHook, Message
 				$message = '-';
 				return false; // We have replaced message, stop further processing
 			}
+		}
+	}
+
+	public function onChangeTagCanCreate( $tag, $user, &$status ) {
+		if (
+			$this->useSystemManagedTags
+			&& !$this->requireUserActivate
+			&& substr( $tag, 0, strlen( HashtagCommentParser::HASHTAG_PREFIX ) )
+				=== HashtagCommentParser::HASHTAG_PREFIX
+		) {
+			// We only ban creating hashtag names if user activation is uneeded
+			// and we manage hashtags as system tags.
+			$status->fatal( 'hashtags-tag-reserved' );
 		}
 	}
 }

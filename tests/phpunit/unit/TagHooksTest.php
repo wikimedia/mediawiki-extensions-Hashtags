@@ -34,7 +34,11 @@ class TagHooksTest extends MediaWikiUnitTestCase {
 	 * @dataProvider provideHooks
 	 */
 	public function testHooks( $method ) {
-		$hookObj = new TagHooks( $this->tagStore );
+		$config = new HashConfig( [
+			'HashtagsMakeTagsSystemManaged' => true,
+			'HashtagsRequireActiveTag' => false
+		] );
+		$hookObj = new TagHooks( $this->tagStore, $config );
 		$tags = [ 'bar', 'fred' ];
 		$hookObj->$method( $tags );
 		$this->assertContains( 'bar', $tags, 'bar from other extension is kept' );
