@@ -1,10 +1,10 @@
 <?php
 namespace MediaWiki\Extension\Hashtags;
 
-use MediaWiki\CommentFormatter\CommentParserFactory;
-use MediaWiki\Linker\LinkRenderer;
-use MediaWiki\Config\ServiceOptions;
 use MediaWiki\ChangeTags\ChangeTagsStore;
+use MediaWiki\CommentFormatter\CommentParserFactory;
+use MediaWiki\Config\ServiceOptions;
+use MediaWiki\Linker\LinkRenderer;
 
 class HashtagCommentParserFactory extends CommentParserFactory {
 
@@ -32,6 +32,11 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 
 	public function create() {
 		$originalObj = $this->commentParserFactory->create();
-		return new HashtagCommentParser( $originalObj, $this->linkRenderer, $this->changeTagsStore, $this->requireActivation );
+		return new HashtagCommentParser(
+			$originalObj,
+			$this->linkRenderer,
+			$this->changeTagsStore,
+			$this->requireActivation
+		);
 	}
 }

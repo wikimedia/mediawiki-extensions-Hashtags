@@ -4,10 +4,10 @@ namespace MediaWiki\Extension\Hashtags;
 
 use MediaWiki\Cache\Hook\MessagesPreLoadHook;
 use MediaWiki\ChangeTags\ChangeTagsStore;
+use MediaWiki\ChangeTags\Hook\ChangeTagCanCreateHook;
 use MediaWiki\ChangeTags\Hook\ChangeTagsListActiveHook;
 use MediaWiki\ChangeTags\Hook\ListDefinedTagsHook;
 use MediaWiki\Config\Config;
-use MediaWiki\ChangeTags\Hook\ChangeTagCanCreateHook;
 
 class TagHooks implements ListDefinedTagsHook, ChangeTagsListActiveHook, MessagesPreLoadHook, ChangeTagCanCreateHook {
 
@@ -78,6 +78,9 @@ class TagHooks implements ListDefinedTagsHook, ChangeTagsListActiveHook, Message
 		}
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function onChangeTagCanCreate( $tag, $user, &$status ) {
 		if (
 			$this->useSystemManagedTags

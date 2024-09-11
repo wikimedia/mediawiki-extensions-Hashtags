@@ -21,7 +21,8 @@
 	},
 	"Hooks": {
 		"MediaWikiServices": "service",
-		"RecentChange_save": "rcsave",
+		"RevisionFromEditComplete": "save",
+		"ManualLogEntryBeforePublish": "save",
 		"ListDefinedTags": "tag",
 		"ChangeTagsListActive": "tag",
 		"MessagesPreLoad": "tag",
@@ -31,8 +32,8 @@
 		"service": {
 			"class": "MediaWiki\\Extension\\Hashtags\\ServicesHooks"
 		},
-		"rcsave": {
-			"class": "MediaWiki\\Extension\\Hashtags\\RCSaveHooks",
+		"save": {
+			"class": "MediaWiki\\Extension\\Hashtags\\SaveHooks",
 			"services": [
 				"CommentParserFactory"
 			]

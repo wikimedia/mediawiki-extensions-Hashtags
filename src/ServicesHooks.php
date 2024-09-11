@@ -3,9 +3,9 @@
 namespace MediaWiki\Extension\Hashtags;
 
 use MediaWiki\CommentFormatter\CommentParserFactory;
+use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Hook\MediaWikiServicesHook;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Config\ServiceOptions;
 
 class ServicesHooks implements MediaWikiServicesHook {
 

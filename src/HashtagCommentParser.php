@@ -2,13 +2,13 @@
 
 namespace MediaWiki\Extension\Hashtags;
 
+use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\CommentFormatter\CommentParser;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkTarget;
-use RuntimeException;
 use MediaWiki\Parser\Sanitizer;
+use RuntimeException;
 use SpecialPage;
-use MediaWiki\ChangeTags\ChangeTagsStore;
 
 /**
  * This is our own version of Core's CommentParser.
@@ -170,7 +170,7 @@ class HashtagCommentParser extends CommentParser {
 			// No hashtags should meet that criteria in this case, but unclear if we
 			// should still check.
 			$tags = $this->changeTagsStore->listExplicitlyDefinedTags();
-			return in_array( self::HASHTAG_PREFIX . $tag, $tags ); 
+			return in_array( self::HASHTAG_PREFIX . $tag, $tags );
 		}
 		return true;
 	}
