@@ -23,6 +23,7 @@
 		"MediaWikiServices": "service",
 		"RevisionFromEditComplete": "save",
 		"ManualLogEntryBeforePublish": "save",
+		"ArticleRevisionVisibilitySet": "save",
 		"ListDefinedTags": "tag",
 		"ChangeTagsListActive": "tag",
 		"MessagesPreLoad": "tag",
@@ -35,7 +36,10 @@
 		"save": {
 			"class": "MediaWiki\\Extension\\Hashtags\\SaveHooks",
 			"services": [
-				"CommentParserFactory"
+				"CommentParserFactory",
+				"ChangeTagsStore",
+				"ConnectionProvider",
+				"RevisionLookup"
 			]
 		},
 		"tag": {

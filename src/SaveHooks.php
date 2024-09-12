@@ -1,16 +1,34 @@
 <?php
 namespace MediaWiki\Extension\Hashtags;
 
+use IDBAccessObject;
+use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\CommentFormatter\CommentParserFactory;
+use MediaWiki\Hook\ArticleRevisionVisibilitySetHook;
 use MediaWiki\Hook\ManualLogEntryBeforePublishHook;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\Hook\RevisionFromEditCompleteHook;
+use MediaWiki\Revision\RevisionLookup;
+use MediaWiki\Revision\RevisionRecord;
+use Wikimedia\Rdbms\IConnectionProvider;
 
-class SaveHooks implements RevisionFromEditCompleteHook, ManualLogEntryBeforePublishHook {
+class SaveHooks implements
+	RevisionFromEditCompleteHook,
+	ManualLogEntryBeforePublishHook,
+	ArticleRevisionVisibilitySetHook
+{
 
 	private HashtagCommentParserFactory $cpFactory;
+	private ChangeTagsStore $changeTagsStore;
+	private IConnectionProvider $dbProvider;
+	private RevisionLookup $revisionLookup;
 
-	public function __construct( CommentParserFactory $commentParserFactory ) {
+	public function __construct(
+		CommentParserFactory $commentParserFactory,
+		ChangeTagsStore $changeTagsStore,
+		IConnectionProvider $dbProvider,
+		RevisionLookup $revisionLookup
+	) {
 		if ( !( $commentParserFactory instanceof HashtagCommentParserFactory ) ) {
 			// Maybe something else wrapped our wrapper?
 			// This is hacky, but should work.
@@ -20,6 +38,9 @@ class SaveHooks implements RevisionFromEditCompleteHook, ManualLogEntryBeforePub
 			);
 		}
 		$this->cpFactory = $commentParserFactory;
+		$this->changeTagsStore = $changeTagsStore;
+		$this->dbProvider = $dbProvider;
+		$this->revisionLookup = $revisionLookup;
 	}
 
 	// Previously we used onRecentChange_save, however onRevisionFromEditComplete
@@ -50,6 +71,48 @@ class SaveHooks implements RevisionFromEditCompleteHook, ManualLogEntryBeforePub
 		// including some cases that onRevisionFromEditComplete
 		// does not cover.
 		$logEntry->addTags( $newTags );
+	}
+
+	// FIXME: We need a solution for log entries being revdeleted/undeleted.
+
+	/**
+	 * @inheritDoc
+	 */
+	public function onArticleRevisionVisibilitySet( $title, $ids, $visibilityChangeMap ) {
+		foreach ( $visibilityChangeMap as $id => $change ) {
+			if (
+				( $change['oldBits'] & RevisionRecord::DELETED_COMMENT ) === 0 &&
+				( $change['newBits'] & RevisionRecord::DELETED_COMMENT ) !== 0
+			) {
+				// We are deleting this comment
+				$rcId = null;
+				$existingTags = $this->changeTagsStore->getTagsWithData(
+					$this->dbProvider->getPrimaryDatabase(),
+					$rcId, /* rc id */
+					$id /* rev id */
+				);
+				$tagsToRemove = array_filter(
+					$existingTags,
+					static function ( $key ) {
+						return substr( $key, 0,
+							strlen( HashtagCommentParser::HASHTAG_PREFIX )
+						) === HashtagCommentParser::HASHTAG_PREFIX;
+					},
+					ARRAY_FILTER_USE_KEY
+				);
+				$this->changeTagsStore->updateTags( [], array_keys( $tagsToRemove ), $rcId, $id );
+			} elseif (
+				( $change['oldBits'] & RevisionRecord::DELETED_COMMENT ) !== 0 &&
+				( $change['newBits'] & RevisionRecord::DELETED_COMMENT ) === 0
+			) {
+				// We are undeleting this comment.
+				$rev = $this->revisionLookup->getRevisionById( $id, IDBAccessObject::READ_LATEST );
+				$comment = $rev->getComment()->text;
+				$newTags = $this->getTagsFromEditSummary( $comment );
+				$rcId = null;
+				$this->changeTagsStore->updateTags( $newTags, [], $rcId, $id );
+			}
+		}
 	}
 
 	private function getTagsFromEditSummary( string $summary ): array {
