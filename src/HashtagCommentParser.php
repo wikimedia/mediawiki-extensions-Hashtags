@@ -33,6 +33,7 @@ class HashtagCommentParser extends CommentParser {
 	private LinkRenderer $linkRenderer;
 	private ChangeTagsStore $changeTagsStore;
 	private bool $requireActivation;
+	private array $invalidList;
 
 	/** @var array Map of markers -> tag names */
 	private $markerMap = [];
@@ -45,13 +46,15 @@ class HashtagCommentParser extends CommentParser {
 		CommentParser $commentParser,
 		LinkRenderer $linkRenderer,
 		ChangeTagsStore $changeTagsStore,
-		bool $requireActivation
+		bool $requireActivation,
+		array $invalidList
 	) {
 		// CommentParser is technically marked @internal... but meh.
 		$this->commentParser = $commentParser;
 		$this->linkRenderer = $linkRenderer;
 		$this->requireActivation = $requireActivation;
 		$this->changeTagsStore = $changeTagsStore;
+		$this->invalidList = $invalidList;
 		// Intentionally do not call parent::__construct
 	}
 
@@ -165,6 +168,9 @@ class HashtagCommentParser extends CommentParser {
 	}
 
 	private function isValidTag( string $tag ): bool {
+		if ( ( $this->invalidList[$tag] ?? false ) === true ) {
+			return false;
+		}
 		if ( $this->requireActivation ) {
 			// This does not include software activated tags, only user activated.
 			// No hashtags should meet that criteria in this case, but unclear if we

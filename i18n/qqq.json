@@ -5,5 +5,6 @@
 		]
 	},
 	"hashtags-desc": "{{desc|name=Hashtags}}",
-	"hashtags-tag-reserved": "Error shown if you try to create a tag on Special:Tags that starts with \"hashtag-\"."
+	"hashtags-tag-reserved": "Error shown if you try to create a tag on Special:Tags that starts with \"hashtag-\".",
+	"hashtags-invalid-tags": "Not a real message. The MediaWiki namespace page is used as a configuration page for this extension.\n{{optional}}."
 }
