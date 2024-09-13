@@ -7,6 +7,8 @@ use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Linker\LinkRenderer;
+use MediaWiki\Linker\LinkTarget;
+use SpecialPage;
 
 class HashtagCommentParserFactory extends CommentParserFactory {
 
@@ -40,15 +42,47 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 		$this->context = $context;
 	}
 
+	/**
+	 * @inheritDoc
+	 * Make a HashtagCommentParser guessing the tag target based on current page
+	 */
 	public function create() {
+		$target = $this->getDefaultTagTarget();
+		return $this->createWithTagTarget( $target );
+	}
+
+	/**
+	 * Make a HashtagCommentParser for a specific tag link target
+	 * @return CommentParser
+	 */
+	public function createWithTagTarget( LinkTarget $target ) {
 		$originalObj = $this->commentParserFactory->create();
 		return new HashtagCommentParser(
 			$originalObj,
 			$this->linkRenderer,
 			$this->changeTagsStore,
 			$this->requireActivation,
-			$this->invalidList
+			$this->invalidList,
+			$target
 		);
+	}
+
+	/**
+	 * Get page to link tags to
+	 */
+	private function getDefaultTagTarget(): LinkTarget {
+		// I'm unsure how specific to go here. We could
+		// potentially try and make it go on the same page -
+		// e.g. Clicking on a tag on a history page could show
+		// just edits to that page with the tag. I think its
+		// better to go broad, just do all of RC for most
+		// things and Special:Log if we are already on Special:Log.
+		$curTitle = $this->context->getTitle();
+		// curTitle might be null during unit tests but otherwise should not be.
+		if ( $curTitle && $curTitle->isSpecial( 'Log' ) ) {
+			return SpecialPage::getTitleFor( 'Log' );
+		}
+		return SpecialPage::getTitleFor( 'Recentchanges' );
 	}
 
 	/**
@@ -56,7 +90,7 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 	 *
 	 * @return array [ tagname => true, ... ]
 	 */
-	private function getInvalidList() {
+	private function getInvalidList(): array {
 		$list = [];
 		$msg = $this->context->msg(
 			'hashtags-invalid-tags'

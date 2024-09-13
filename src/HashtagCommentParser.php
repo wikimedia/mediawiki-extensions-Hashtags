@@ -8,7 +8,6 @@ use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\Parser\Sanitizer;
 use RuntimeException;
-use SpecialPage;
 
 /**
  * This is our own version of Core's CommentParser.
@@ -34,6 +33,7 @@ class HashtagCommentParser extends CommentParser {
 	private ChangeTagsStore $changeTagsStore;
 	private bool $requireActivation;
 	private array $invalidList;
+	private LinkTarget $targetOfTagLinks;
 
 	/** @var array Map of markers -> tag names */
 	private $markerMap = [];
@@ -47,7 +47,8 @@ class HashtagCommentParser extends CommentParser {
 		LinkRenderer $linkRenderer,
 		ChangeTagsStore $changeTagsStore,
 		bool $requireActivation,
-		array $invalidList
+		array $invalidList,
+		LinkTarget $targetOfTagLinks
 	) {
 		// CommentParser is technically marked @internal... but meh.
 		$this->commentParser = $commentParser;
@@ -55,6 +56,7 @@ class HashtagCommentParser extends CommentParser {
 		$this->requireActivation = $requireActivation;
 		$this->changeTagsStore = $changeTagsStore;
 		$this->invalidList = $invalidList;
+		$this->targetOfTagLinks = $targetOfTagLinks;
 		// Intentionally do not call parent::__construct
 	}
 
@@ -257,7 +259,7 @@ class HashtagCommentParser extends CommentParser {
 		// made that instead we should filter the current page
 		// (e.g. History page or log list) instead of RC.
 		return $this->linkRenderer->makeLink(
-			SpecialPage::getTitleFor( 'Recentchanges' ),
+			$this->targetOfTagLinks,
 			'#' . $tag,
 			[ 'class' => 'mw-hashtag' ],
 			[ 'tagfilter' => self::HASHTAG_PREFIX . $tag ]
