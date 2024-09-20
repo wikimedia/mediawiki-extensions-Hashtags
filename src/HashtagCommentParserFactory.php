@@ -34,8 +34,6 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 		$this->linkRenderer = $linkRenderer;
 		$this->changeTagsStore = $changeTagsStore;
 		$this->requireActivation = $options->get( 'HashtagsRequireActiveTag' );
-		$this->context = RequestContext::getMain();
-		$this->invalidList = $this->getInvalidList();
 	}
 
 	public function setContext( IContextSource $context ) {
@@ -62,7 +60,7 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 			$this->linkRenderer,
 			$this->changeTagsStore,
 			$this->requireActivation,
-			$this->invalidList,
+			$this->getInvalidList(),
 			$target
 		);
 	}
@@ -71,6 +69,9 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 	 * Get page to link tags to
 	 */
 	private function getDefaultTagTarget(): LinkTarget {
+		if ( !isset( $this->context ) ) {
+			$this->context = RequestContext::getMain();
+		}
 		// I'm unsure how specific to go here. We could
 		// potentially try and make it go on the same page -
 		// e.g. Clicking on a tag on a history page could show
@@ -91,6 +92,12 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 	 * @return array [ tagname => true, ... ]
 	 */
 	private function getInvalidList(): array {
+		if ( isset( $this->invalidList ) ) {
+			return $this->invalidList;
+		}
+		if ( !isset( $this->context ) ) {
+			$this->context = RequestContext::getMain();
+		}
 		$list = [];
 		$msg = $this->context->msg(
 			'hashtags-invalid-tags'

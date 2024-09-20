@@ -107,8 +107,18 @@ class SaveHooks implements
 			) {
 				// We are undeleting this comment.
 				$rev = $this->revisionLookup->getRevisionById( $id, IDBAccessObject::READ_LATEST );
-				$comment = $rev->getComment()->text;
-				$newTags = $this->getTagsFromEditSummary( $comment );
+				if ( $rev === null ) {
+					// Maybe we should just log this and silently ignore (?)
+					throw new \RuntimeException( "un-revdel on revision $id that does not exist" );
+				}
+				$comment = $rev->getComment();
+				if ( $comment === null ) {
+					// It returns null if access control fails.
+					// This generally should not happen.
+					wfWarn( "Recently unrevdeleted comment for $id cannot be accessed" );
+					return;
+				}
+				$newTags = $this->getTagsFromEditSummary( $comment->text );
 				$rcId = null;
 				$this->changeTagsStore->updateTags( $newTags, [], $rcId, $id );
 			}
