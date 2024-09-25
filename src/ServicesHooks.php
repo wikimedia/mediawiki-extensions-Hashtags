@@ -43,6 +43,12 @@ class ServicesHooks implements MediaWikiServicesHook {
 			HashtagCommentParserFactory::CONSTRUCTOR_OPTIONS,
 			$services->getMainConfig()
 		);
-		return new HashtagCommentParserFactory( $factory, $linkRenderer, $changeTagsStore, $options );
+		return new HashtagCommentParserFactory(
+			$factory,
+			$linkRenderer,
+			$changeTagsStore,
+			$services->getSpecialPageFactory(),
+			$options
+		);
 	}
 }

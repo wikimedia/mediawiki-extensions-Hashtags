@@ -8,7 +8,8 @@ use MediaWiki\Context\IContextSource;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkTarget;
-use SpecialPage;
+use MediaWiki\SpecialPage\SpecialPageFactory;
+use MediaWiki\Title\TitleValue;
 
 class HashtagCommentParserFactory extends CommentParserFactory {
 
@@ -17,6 +18,7 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 	private ChangeTagsStore $changeTagsStore;
 	private bool $requireActivation;
 	private IContextSource $context;
+	private SpecialPageFactory $specialPageFactory;
 	private array $invalidList;
 
 	public const CONSTRUCTOR_OPTIONS = [
@@ -27,6 +29,7 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 		CommentParserFactory $commentParserFactory,
 		LinkRenderer $linkRenderer,
 		ChangeTagsStore $changeTagsStore,
+		SpecialPageFactory $specialPageFactory,
 		ServiceOptions $options
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
@@ -34,6 +37,7 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 		$this->linkRenderer = $linkRenderer;
 		$this->changeTagsStore = $changeTagsStore;
 		$this->requireActivation = $options->get( 'HashtagsRequireActiveTag' );
+		$this->specialPageFactory = $specialPageFactory;
 	}
 
 	public function setContext( IContextSource $context ) {
@@ -81,9 +85,9 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 		$curTitle = $this->context->getTitle();
 		// curTitle might be null during unit tests but otherwise should not be.
 		if ( $curTitle && $curTitle->isSpecial( 'Log' ) ) {
-			return SpecialPage::getTitleFor( 'Log' );
+			return new TitleValue( NS_SPECIAL, $this->specialPageFactory->getLocalNameFor( 'Log' ) );
 		}
-		return SpecialPage::getTitleFor( 'Recentchanges' );
+		return new TitleValue( NS_SPECIAL, $this->specialPageFactory->getLocalNameFor( 'Recentchanges' ) );
 	}
 
 	/**
