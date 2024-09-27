@@ -113,6 +113,7 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 				$list[substr( $item, 1 )] = true;
 			}
 		}
-		return $list;
+		$this->invalidList = $list;
+		return $this->invalidList;
 	}
 }

@@ -4,6 +4,7 @@ use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\CommentFormatter\CommentParser;
 use MediaWiki\Extension\Hashtags\HashtagCommentParser;
 use MediaWiki\Linker\LinkRenderer;
+use Wikimedia\TestingAccessWrapper;
 
 /**
  * @covers \MediaWiki\Extension\Hashtags\HashtagCommentParser
@@ -78,6 +79,13 @@ class HashtagCommentParserTest extends MediaWikiUnitTestCase {
 		$pre = $parser->preprocess( '#foo #bar #baz nothashtag #something' );
 		$res = $parser->finalize( "$pre" );
 		$this->assertEquals( '<a href="Recentchanges">#bar</a><a>#baz</a>', $res );
+	}
+
+	public function testMaxMarkers() {
+		$this->expectException( RuntimeException::class );
+		$parser = TestingAccessWrapper::newFromObject( $this->getHashtagCommentParser() );
+		$parser->markerCount = 1e7;
+		$pre = $parser->preprocess( 'foo #bar' );
 	}
 
 	public function testFinalize() {

@@ -1,8 +1,10 @@
 <?php
 use MediaWiki\Extension\Hashtags\ServicesHooks;
+use Wikimedia\TestingAccessWrapper;
 
 /**
  * @covers \MediaWiki\Extension\Hashtags\HashtagCommentParser
+ * @covers \MediaWiki\Extension\Hashtags\HashtagCommentParserFactory
  */
 class HashtagCommentParserIntegrationTest extends MediaWikiIntegrationTestCase {
 
@@ -57,6 +59,12 @@ class HashtagCommentParserIntegrationTest extends MediaWikiIntegrationTestCase {
 		$res = $parser->finalize( $pre );
 		$this->assertEquals( $res, $version, 'wrapped' );
 
+		$parser = $factory->create();
+
+		$pre = $parser->preprocess( $comment );
+		$res = $parser->finalize( $pre );
+		$this->assertEquals( $res, $rc, 'rc global context' );
+
 		$context = new RequestContext;
 		$context->setTitle( Title::newMainPage() );
 		$factory->setContext( $context );
@@ -83,5 +91,24 @@ class HashtagCommentParserIntegrationTest extends MediaWikiIntegrationTestCase {
 		$pre = $parser->preprocess( $comment );
 		$res = $parser->finalize( $pre );
 		$this->assertEquals( $res, $log, 'log/delete' );
+	}
+
+	public function testGetDefaultTagTarget() {
+		$factory = TestingAccessWrapper::newFromObject(
+			$this->getServiceContainer()->getCommentParserFactory()
+		);
+		$target = Title::castFromLinkTarget( $factory->getDefaultTagTarget() );
+		$page = SpecialPage::GetTitleFor( 'Recentchanges' );
+		$this->assertTrue( $page->isSamePageAs( $target ), 'normal page' );
+
+		$log = SpecialPage::GetTitleFor( 'Log' );
+		RequestContext::getMain()->setTitle( $log );
+		$target = Title::castFromLinkTarget( $factory->getDefaultTagTarget() );
+		$this->assertTrue( $log->isSamePageAs( $target ), 'log' );
+
+		$moveLog = SpecialPage::GetTitleFor( 'Log', 'move' );
+		RequestContext::getMain()->setTitle( $moveLog );
+		$target = Title::castFromLinkTarget( $factory->getDefaultTagTarget() );
+		$this->assertTrue( $log->isSamePageAs( $target ), 'move log' );
 	}
 }
