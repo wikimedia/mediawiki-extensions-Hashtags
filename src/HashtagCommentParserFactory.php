@@ -4,12 +4,12 @@ namespace MediaWiki\Extension\Hashtags;
 use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\CommentFormatter\CommentParserFactory;
 use MediaWiki\Config\ServiceOptions;
-use MediaWiki\Context\IContextSource;
-use MediaWiki\Context\RequestContext;
+use IContextSource;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\SpecialPage\SpecialPageFactory;
 use MediaWiki\Title\TitleValue;
+use RequestContext;
 
 class HashtagCommentParserFactory extends CommentParserFactory {
 

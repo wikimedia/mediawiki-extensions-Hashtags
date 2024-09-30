@@ -38,7 +38,6 @@
 			"services": [
 				"CommentParserFactory",
 				"ChangeTagsStore",
-				"ConnectionProvider",
 				"RevisionLookup"
 			]
 		},

@@ -20,13 +20,11 @@ class SaveHooks implements
 
 	private HashtagCommentParserFactory $cpFactory;
 	private ChangeTagsStore $changeTagsStore;
-	private IConnectionProvider $dbProvider;
 	private RevisionLookup $revisionLookup;
 
 	public function __construct(
 		CommentParserFactory $commentParserFactory,
 		ChangeTagsStore $changeTagsStore,
-		IConnectionProvider $dbProvider,
 		RevisionLookup $revisionLookup
 	) {
 		if ( !( $commentParserFactory instanceof HashtagCommentParserFactory ) ) {
@@ -39,7 +37,6 @@ class SaveHooks implements
 		}
 		$this->cpFactory = $commentParserFactory;
 		$this->changeTagsStore = $changeTagsStore;
-		$this->dbProvider = $dbProvider;
 		$this->revisionLookup = $revisionLookup;
 	}
 
@@ -87,7 +84,7 @@ class SaveHooks implements
 				// We are deleting this comment
 				$rcId = null;
 				$existingTags = $this->changeTagsStore->getTagsWithData(
-					$this->dbProvider->getPrimaryDatabase(),
+					wfGetDB( DB_PRIMARY ),
 					$rcId, /* rc id */
 					$id /* rev id */
 				);
