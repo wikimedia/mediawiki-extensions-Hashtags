@@ -1,13 +1,13 @@
 {
 	"name": "Hashtags",
-	"version": "0.1-REL1_40",
+	"version": "0.1-REL1_39",
 	"author": [
 		"Brian Wolff"
 	],
 	"url": "https://www.mediawiki.org/wiki/Extension:Hashtags",
 	"descriptionmsg": "hashtags-desc",
 	"requires": {
-		"MediaWiki": "~1.40"
+		"MediaWiki": "~1.39"
 	},
 	"license-name": "GPL-2.0-or-later",
 	"type": "other",
