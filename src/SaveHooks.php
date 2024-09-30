@@ -1,16 +1,14 @@
 <?php
 namespace MediaWiki\Extension\Hashtags;
 
+use ChangeTags;
 use IDBAccessObject;
-use MediaWiki\ChangeTags\ChangeTagsStore;
-use MediaWiki\CommentFormatter\CommentParserFactory;
 use MediaWiki\Hook\ArticleRevisionVisibilitySetHook;
 use MediaWiki\Hook\ManualLogEntryBeforePublishHook;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\Hook\RevisionFromEditCompleteHook;
 use MediaWiki\Revision\RevisionLookup;
 use MediaWiki\Revision\RevisionRecord;
-use Wikimedia\Rdbms\IConnectionProvider;
 
 class SaveHooks implements
 	RevisionFromEditCompleteHook,
@@ -19,24 +17,13 @@ class SaveHooks implements
 {
 
 	private HashtagCommentParserFactory $cpFactory;
-	private ChangeTagsStore $changeTagsStore;
 	private RevisionLookup $revisionLookup;
 
 	public function __construct(
-		CommentParserFactory $commentParserFactory,
-		ChangeTagsStore $changeTagsStore,
 		RevisionLookup $revisionLookup
 	) {
-		if ( !( $commentParserFactory instanceof HashtagCommentParserFactory ) ) {
-			// Maybe something else wrapped our wrapper?
-			// This is hacky, but should work.
-			$commentParserFactory = ServicesHooks::wrapCommentParserFactory(
-				$commentParserFactory,
-				MediaWikiServices::getInstance()
-			);
-		}
-		$this->cpFactory = $commentParserFactory;
-		$this->changeTagsStore = $changeTagsStore;
+		// Hack for 1.40
+		$this->cpFactory = ServicesHooks::getCommentParser( MediaWikiServices::getInstance() );
 		$this->revisionLookup = $revisionLookup;
 	}
 
@@ -83,7 +70,7 @@ class SaveHooks implements
 			) {
 				// We are deleting this comment
 				$rcId = null;
-				$existingTags = $this->changeTagsStore->getTagsWithData(
+				$existingTags = ChangeTags::getTagsWithData(
 					wfGetDB( DB_PRIMARY ),
 					$rcId, /* rc id */
 					$id /* rev id */
@@ -97,7 +84,7 @@ class SaveHooks implements
 					},
 					ARRAY_FILTER_USE_KEY
 				);
-				$this->changeTagsStore->updateTags( [], array_keys( $tagsToRemove ), $rcId, $id );
+				ChangeTags::updateTags( [], array_keys( $tagsToRemove ), $rcId, $id );
 			} elseif (
 				( $change['oldBits'] & RevisionRecord::DELETED_COMMENT ) !== 0 &&
 				( $change['newBits'] & RevisionRecord::DELETED_COMMENT ) === 0
@@ -117,7 +104,7 @@ class SaveHooks implements
 				}
 				$newTags = $this->getTagsFromEditSummary( $comment->text );
 				$rcId = null;
-				$this->changeTagsStore->updateTags( $newTags, [], $rcId, $id );
+				ChangeTags::updateTags( $newTags, [], $rcId, $id );
 			}
 		}
 	}

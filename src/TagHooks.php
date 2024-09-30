@@ -2,21 +2,19 @@
 
 namespace MediaWiki\Extension\Hashtags;
 
+use ChangeTags;
+use Config;
 use MediaWiki\Cache\Hook\MessagesPreLoadHook;
-use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\ChangeTags\Hook\ChangeTagCanCreateHook;
 use MediaWiki\ChangeTags\Hook\ChangeTagsListActiveHook;
 use MediaWiki\ChangeTags\Hook\ListDefinedTagsHook;
-use MediaWiki\Config\Config;
 
 class TagHooks implements ListDefinedTagsHook, ChangeTagsListActiveHook, MessagesPreLoadHook, ChangeTagCanCreateHook {
 
-	private ChangeTagsStore $tagStore;
 	private bool $useSystemManagedTags;
 	private bool $requireUserActivate;
 
-	public function __construct( ChangeTagsStore $store, Config $config ) {
-		$this->tagStore = $store;
+	public function __construct( Config $config ) {
 		$this->useSystemManagedTags = $config->get( 'HashtagsMakeTagsSystemManaged' );
 		$this->requireUserActivate = $config->get( 'HashtagsRequireActiveTag' );
 	}
@@ -47,7 +45,7 @@ class TagHooks implements ListDefinedTagsHook, ChangeTagsListActiveHook, Message
 	 */
 	private function getUsedHashtagTags() {
 		$tags = [];
-		$stats = $this->tagStore->tagUsageStatistics();
+		$stats = ChangeTags::tagUsageStatistics();
 		foreach ( $stats as $tag => $hitcount ) {
 			if (
 				$hitcount > 0 &&

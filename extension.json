@@ -1,13 +1,13 @@
 {
 	"name": "Hashtags",
-	"version": "0.1",
+	"version": "0.1-REL1_40",
 	"author": [
 		"Brian Wolff"
 	],
 	"url": "https://www.mediawiki.org/wiki/Extension:Hashtags",
 	"descriptionmsg": "hashtags-desc",
 	"requires": {
-		"MediaWiki": ">= 1.41"
+		"MediaWiki": "~1.40"
 	},
 	"license-name": "GPL-2.0-or-later",
 	"type": "other",
@@ -36,15 +36,12 @@
 		"save": {
 			"class": "MediaWiki\\Extension\\Hashtags\\SaveHooks",
 			"services": [
-				"CommentParserFactory",
-				"ChangeTagsStore",
 				"RevisionLookup"
 			]
 		},
 		"tag": {
 			"class": "MediaWiki\\Extension\\Hashtags\\TagHooks",
 			"services": [
-				"ChangeTagsStore",
 				"MainConfig"
 			]
 		}

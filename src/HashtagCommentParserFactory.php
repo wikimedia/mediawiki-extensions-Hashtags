@@ -1,21 +1,19 @@
 <?php
 namespace MediaWiki\Extension\Hashtags;
 
-use MediaWiki\ChangeTags\ChangeTagsStore;
+use IContextSource;
 use MediaWiki\CommentFormatter\CommentParserFactory;
 use MediaWiki\Config\ServiceOptions;
-use IContextSource;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\SpecialPage\SpecialPageFactory;
-use MediaWiki\Title\TitleValue;
 use RequestContext;
+use TitleValue;
 
 class HashtagCommentParserFactory extends CommentParserFactory {
 
 	private CommentParserFactory $commentParserFactory;
 	private LinkRenderer $linkRenderer;
-	private ChangeTagsStore $changeTagsStore;
 	private bool $requireActivation;
 	private IContextSource $context;
 	private SpecialPageFactory $specialPageFactory;
@@ -28,14 +26,12 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 	public function __construct(
 		CommentParserFactory $commentParserFactory,
 		LinkRenderer $linkRenderer,
-		ChangeTagsStore $changeTagsStore,
 		SpecialPageFactory $specialPageFactory,
 		ServiceOptions $options
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->commentParserFactory = $commentParserFactory;
 		$this->linkRenderer = $linkRenderer;
-		$this->changeTagsStore = $changeTagsStore;
 		$this->requireActivation = $options->get( 'HashtagsRequireActiveTag' );
 		$this->specialPageFactory = $specialPageFactory;
 	}
@@ -62,7 +58,6 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 		return new HashtagCommentParser(
 			$originalObj,
 			$this->linkRenderer,
-			$this->changeTagsStore,
 			$this->requireActivation,
 			$this->getInvalidList(),
 			$target
