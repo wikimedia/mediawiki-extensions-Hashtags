@@ -71,7 +71,7 @@ class HashtagCommentParser extends CommentParser {
 	 * @param bool $enableSectionLinks
 	 * @return string
 	 */
-	public function preprocess( string $comment, LinkTarget $selfLinkTarget = null,
+	public function preprocess( string $comment, ?LinkTarget $selfLinkTarget = null,
 		$samePage = false, $wikiId = false, $enableSectionLinks = true
 	) {
 		$comment = Sanitizer::escapeHtmlAllowEntities( $comment );
@@ -94,7 +94,7 @@ class HashtagCommentParser extends CommentParser {
 	 * @param bool $enableSectionLinks
 	 * @return string
 	 */
-	public function preprocessUnsafe( $comment, LinkTarget $selfLinkTarget = null,
+	public function preprocessUnsafe( $comment, ?LinkTarget $selfLinkTarget = null,
 		$samePage = false, $wikiId = false, $enableSectionLinks = true
 	) {
 		$comment = $this->extractTags( $comment );
