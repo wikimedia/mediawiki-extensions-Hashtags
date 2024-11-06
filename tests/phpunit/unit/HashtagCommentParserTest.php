@@ -3,13 +3,18 @@
 use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\CommentFormatter\CommentParser;
 use MediaWiki\Extension\Hashtags\HashtagCommentParser;
+use MediaWiki\Extension\Hashtags\HashtagCommentParserFactory;
+use MediaWiki\Extension\Hashtags\TagCollector;
 use MediaWiki\Linker\LinkRenderer;
 use Wikimedia\TestingAccessWrapper;
 
 /**
  * @covers \MediaWiki\Extension\Hashtags\HashtagCommentParser
+ * @covers \MediaWiki\Extension\Hashtags\TagCollector
  */
 class HashtagCommentParserTest extends MediaWikiUnitTestCase {
+
+	private TagCollector $tagCollector;
 
 	private function getHashtagCommentParser( $requireActivation = false, $pre = null, $final = null ) {
 		$commentParser = $this->createMock( CommentParser::class );
@@ -32,13 +37,15 @@ class HashtagCommentParserTest extends MediaWikiUnitTestCase {
 		] );
 		$invalidList = [ 'foo' => true, 'something' => true, 'fred' => true ];
 		$linkTarget = new TitleValue( NS_SPECIAL, 'Recentchanges' );
+		$this->tagCollector = new TagCollector;
 		return new HashtagCommentParser(
 			$commentParser,
 			$linkRenderer,
 			$changeTagsStore,
 			$requireActivation,
 			$invalidList,
-			$linkTarget
+			$linkTarget,
+			$this->tagCollector
 		);
 	}
 
@@ -58,19 +65,15 @@ class HashtagCommentParserTest extends MediaWikiUnitTestCase {
 
 	public function testGetAllTagsSeen() {
 		$parser = $this->getHashtagCommentParser();
-		$res = $parser->preprocess( '#foo #bar #baz nothashtag #something' );
-		$res = $parser->finalize( $res );
-		$this->assertEquals( '#foo <a href="Recentchanges">#bar</a> ' .
-			'<a href="Recentchanges">#baz</a> nothashtag #something', $res );
-		$tags = $parser->getAllTagsSeen();
+		$parserFactory = $this->createMock( HashtagCommentParserFactory::class );
+		$parserFactory->method( 'create' )->willReturn( $parser );
+		$tags = $this->tagCollector->getTagsSeen( $parserFactory, '#foo #bar #baz nothashtag #something' );
 		$this->assertEqualsCanonicalizing( $tags, [ 'hashtag-bar', 'hashtag-baz' ] );
 
 		$parser = $this->getHashtagCommentParser( true );
-		$res = $parser->preprocess( '#foo #bar #baz nothashtag #something' );
-		$res = $parser->finalize( $res );
-		$this->assertEquals( '#foo <a href="Recentchanges">#bar</a> #baz nothashtag' .
-			' #something', $res );
-		$tags = $parser->getAllTagsSeen();
+		$parserFactory = $this->createMock( HashtagCommentParserFactory::class );
+		$parserFactory->method( 'create' )->willReturn( $parser );
+		$tags = $this->tagCollector->getTagsSeen( $parserFactory, '#foo #bar #baz nothashtag #something' );
 		$this->assertEqualsCanonicalizing( $tags, [ 'hashtag-bar' ] );
 	}
 

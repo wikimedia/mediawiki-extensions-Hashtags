@@ -47,16 +47,8 @@ class ReparseHashtags extends Maintenance {
 		$this->revisionStore = MediaWikiServices::getInstance()->getRevisionStore();
 		$this->commentStore = MediaWikiServices::getInstance()->getCommentStore();
 		$this->changeTagsStore = MediaWikiServices::getInstance()->getChangeTagsStore();
-		$commentParserFactory = MediaWikiServices::getInstance()->getCommentParserFactory();
-		if ( !( $commentParserFactory instanceof HashtagCommentParserFactory ) ) {
-				// Maybe something else wrapped our wrapper?
-				// This is hacky, but should work.
-				$commentParserFactory = ServicesHooks::wrapCommentParserFactory(
-						$commentParserFactory,
-						MediaWikiServices::getInstance()
-				);
-		}
-				$this->cpFactory = $commentParserFactory;
+		$this->cpFactory = MediaWikiServices::getInstance()->getCommentParserFactory();
+		$this->tagCollector = MediaWikiServices::getInstance()->getService( 'Hashtags:TagCollector' );
 	}
 
 	public function execute() {
@@ -102,7 +94,7 @@ class ReparseHashtags extends Maintenance {
 				} else {
 					$comment = $this->commentStore->getComment( $commentField, $row )->text;
 				}
-				$correctTags = $this->getTagsFromEditSummary( $comment );
+				$correctTags = $this->tagCollector->getTagsSeen( $this->cpFactory, $comment );
 				$tagsToRemove = array_diff( $existingTags, $correctTags );
 				$tagsToAdd = array_diff( $correctTags, $existingTags );
 
@@ -153,18 +145,6 @@ class ReparseHashtags extends Maintenance {
 		}
 		$this->changeTagsStore->modifyDisplayQueryBuilder( $builder, $type );
 		return $builder->fetchResultSet();
-	}
-
-	private function getTagsFromEditSummary( string $summary ): array {
-			$commentParser = $this->cpFactory->create();
-		if ( !$commentParser instanceof HashtagCommentParser ) {
-				// This should be impossible, however we are doing tricky
-				// things here, so be defensive
-				throw new \UnexpectedValueException( "Must be a HashtagCommentParser" );
-		}
-
-			$commentParser->preprocess( $summary );
-			return $commentParser->getAllTagsSeen();
 	}
 
 	private function verbose( string $text ): void {

@@ -34,6 +34,7 @@ class HashtagCommentParser extends CommentParser {
 	private bool $requireActivation;
 	private array $invalidList;
 	private LinkTarget $targetOfTagLinks;
+	private TagCollector $tagCollector;
 
 	/** @var array Map of markers -> tag names */
 	private $markerMap = [];
@@ -48,7 +49,8 @@ class HashtagCommentParser extends CommentParser {
 		ChangeTagsStore $changeTagsStore,
 		bool $requireActivation,
 		array $invalidList,
-		LinkTarget $targetOfTagLinks
+		LinkTarget $targetOfTagLinks,
+		TagCollector $tagCollector
 	) {
 		// CommentParser is technically marked @internal... but meh.
 		$this->commentParser = $commentParser;
@@ -57,6 +59,7 @@ class HashtagCommentParser extends CommentParser {
 		$this->changeTagsStore = $changeTagsStore;
 		$this->invalidList = $invalidList;
 		$this->targetOfTagLinks = $targetOfTagLinks;
+		$this->tagCollector = $tagCollector;
 		// Intentionally do not call parent::__construct
 	}
 
@@ -74,6 +77,7 @@ class HashtagCommentParser extends CommentParser {
 	public function preprocess( string $comment, ?LinkTarget $selfLinkTarget = null,
 		$samePage = false, $wikiId = false, $enableSectionLinks = true
 	) {
+		$this->tagCollector->startParse( $this );
 		$comment = Sanitizer::escapeHtmlAllowEntities( $comment );
 		$comment = $this->extractTags( $comment );
 		// We escape ourselves before processing tags, so call unsafe variant.
@@ -200,6 +204,10 @@ class HashtagCommentParser extends CommentParser {
 	private function checkExtractedTags( string $comment ): void {
 		if ( preg_match_all( self::MARKER_REGEX, $comment, $m ) ) {
 			foreach ( $m[1] as $marker ) {
+				$this->tagCollector->submitTag(
+					$this,
+					self::HASHTAG_PREFIX . $this->markerMap[$marker]
+				);
 				$this->markersToReplace[$marker] = true;
 			}
 		}
@@ -264,24 +272,5 @@ class HashtagCommentParser extends CommentParser {
 			[ 'class' => 'mw-hashtag' ],
 			[ 'tagfilter' => self::HASHTAG_PREFIX . $tag ]
 		);
-	}
-
-	/**
-	 * Get a list of all tags seen so far
-	 *
-	 * I am unsure if it makes sense
-	 * exclude those not in markersToReplace.
-	 *
-	 * @warning If this class has processed multiple comments, all are counted.
-	 * @return array
-	 */
-	public function getAllTagsSeen(): array {
-		$tags = [];
-		foreach ( $this->markersToReplace as $marker => $value ) {
-			if ( $value ) {
-				$tags[] = self::HASHTAG_PREFIX . $this->markerMap[$marker];
-			}
-		}
-		return array_unique( $tags );
 	}
 }

@@ -39,7 +39,8 @@
 				"CommentParserFactory",
 				"ChangeTagsStore",
 				"ConnectionProvider",
-				"RevisionLookup"
+				"RevisionLookup",
+				"Hashtags:TagCollector"
 			]
 		},
 		"tag": {
@@ -60,5 +61,8 @@
 			"description": "When true, hashtags must first be created and active in Special:Tags before being considered a valid tag. Activating a tag is not retroactive"
 		}
 	},
+	"ServiceWiringFiles": [
+		"src/ServiceWiring.php"
+	],
 	"manifest_version": 2
 }

@@ -6,6 +6,7 @@ use MediaWiki\CommentFormatter\CommentParserFactory;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Extension\Hashtags\HashtagCommentParser;
 use MediaWiki\Extension\Hashtags\HashtagCommentParserFactory;
+use MediaWiki\Extension\Hashtags\TagCollector;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\SpecialPage\SpecialPageFactory;
 use Wikimedia\TestingAccessWrapper;
@@ -30,9 +31,10 @@ class HashtagCommentParserFactoryTest extends MediaWikiUnitTestCase {
 		$specialPageFactory->method( 'getLocalNameFor' )->willReturnCallback( static function ( $i ) {
 			return $i;
 		} );
+		$tagCollector = new TagCollector;
 		return TestingAccessWrapper::newFromObject(
 			new HashtagCommentParserFactory(
-				$commentParserFactory, $linkRenderer, $changeTagsStore, $specialPageFactory, $options
+				$commentParserFactory, $linkRenderer, $changeTagsStore, $specialPageFactory, $options, $tagCollector
 			)
 		);
 	}

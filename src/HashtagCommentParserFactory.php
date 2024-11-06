@@ -20,6 +20,7 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 	private IContextSource $context;
 	private SpecialPageFactory $specialPageFactory;
 	private array $invalidList;
+	private TagCollector $tagCollector;
 
 	public const CONSTRUCTOR_OPTIONS = [
 		"HashtagsRequireActiveTag"
@@ -30,7 +31,8 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 		LinkRenderer $linkRenderer,
 		ChangeTagsStore $changeTagsStore,
 		SpecialPageFactory $specialPageFactory,
-		ServiceOptions $options
+		ServiceOptions $options,
+		TagCollector $tagCollector
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->commentParserFactory = $commentParserFactory;
@@ -38,6 +40,7 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 		$this->changeTagsStore = $changeTagsStore;
 		$this->requireActivation = $options->get( 'HashtagsRequireActiveTag' );
 		$this->specialPageFactory = $specialPageFactory;
+		$this->tagCollector = $tagCollector;
 	}
 
 	public function setContext( IContextSource $context ) {
@@ -65,7 +68,8 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 			$this->changeTagsStore,
 			$this->requireActivation,
 			$this->getInvalidList(),
-			$target
+			$target,
+			$this->tagCollector
 		);
 	}
 

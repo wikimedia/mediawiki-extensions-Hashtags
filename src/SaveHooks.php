@@ -6,7 +6,6 @@ use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\CommentFormatter\CommentParserFactory;
 use MediaWiki\Hook\ArticleRevisionVisibilitySetHook;
 use MediaWiki\Hook\ManualLogEntryBeforePublishHook;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\Hook\RevisionFromEditCompleteHook;
 use MediaWiki\Revision\RevisionLookup;
 use MediaWiki\Revision\RevisionRecord;
@@ -22,25 +21,20 @@ class SaveHooks implements
 	private ChangeTagsStore $changeTagsStore;
 	private IConnectionProvider $dbProvider;
 	private RevisionLookup $revisionLookup;
+	private TagCollector $tagCollector;
 
 	public function __construct(
 		CommentParserFactory $commentParserFactory,
 		ChangeTagsStore $changeTagsStore,
 		IConnectionProvider $dbProvider,
-		RevisionLookup $revisionLookup
+		RevisionLookup $revisionLookup,
+		TagCollector $tagCollector
 	) {
-		if ( !( $commentParserFactory instanceof HashtagCommentParserFactory ) ) {
-			// Maybe something else wrapped our wrapper?
-			// This is hacky, but should work.
-			$commentParserFactory = ServicesHooks::wrapCommentParserFactory(
-				$commentParserFactory,
-				MediaWikiServices::getInstance()
-			);
-		}
 		$this->cpFactory = $commentParserFactory;
 		$this->changeTagsStore = $changeTagsStore;
 		$this->dbProvider = $dbProvider;
 		$this->revisionLookup = $revisionLookup;
+		$this->tagCollector = $tagCollector;
 	}
 
 	// Previously we used onRecentChange_save, however onRevisionFromEditComplete
@@ -48,14 +42,14 @@ class SaveHooks implements
 
 	/**
 	 * @note In certain cases, this hook ignores the $tags parameter. Most of those
-	 *  cases are covered onManualLogEntryBeforePublish.
+	 *  cases are covered by onManualLogEntryBeforePublish.
 	 * @inheritDoc
 	 */
 	public function onRevisionFromEditComplete( $wikiPage, $rev, $originalRevId, $user, &$tags ) {
 		// FIXME, this hasn't been tested with i18n-ized edit summaries, and it is a bit
 		// unclear how they work.
 		$comment = $rev->getComment()->text;
-		$newTags = $this->getTagsFromEditSummary( $comment );
+		$newTags = $this->tagCollector->getTagsSeen( $this->cpFactory, $comment );
 		$tags = array_merge( $tags, $newTags );
 	}
 
@@ -66,7 +60,7 @@ class SaveHooks implements
 	 */
 	public function onManualLogEntryBeforePublish( $logEntry ): void {
 		$comment = $logEntry->getComment();
-		$newTags = $this->getTagsFromEditSummary( $comment );
+		$newTags = $this->tagCollector->getTagsSeen( $this->cpFactory, $comment );
 		// This will also add tags to the associated revision,
 		// including some cases that onRevisionFromEditComplete
 		// does not cover.
@@ -118,22 +112,10 @@ class SaveHooks implements
 					wfWarn( "Recently unrevdeleted comment for $id cannot be accessed" );
 					return;
 				}
-				$newTags = $this->getTagsFromEditSummary( $comment->text );
+				$newTags = $this->tagCollector->getTagsSeen( $this->cpFactory, $comment->text );
 				$rcId = null;
 				$this->changeTagsStore->updateTags( $newTags, [], $rcId, $id );
 			}
 		}
-	}
-
-	private function getTagsFromEditSummary( string $summary ): array {
-		$commentParser = $this->cpFactory->create();
-		if ( !$commentParser instanceof HashtagCommentParser ) {
-			// This should be impossible, however we are doing tricky
-			// things here, so be defensive
-			throw new \UnexpectedValueException( "Must be a HashtagCommentParser" );
-		}
-
-		$commentParser->preprocess( $summary );
-		return $commentParser->getAllTagsSeen();
 	}
 }

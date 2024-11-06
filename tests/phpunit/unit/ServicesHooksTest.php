@@ -4,6 +4,7 @@ use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\CommentFormatter\CommentParserFactory;
 use MediaWiki\Extension\Hashtags\HashtagCommentParserFactory;
 use MediaWiki\Extension\Hashtags\ServicesHooks;
+use MediaWiki\Extension\Hashtags\TagCollector;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkRendererFactory;
 use MediaWiki\MediaWikiServices;
@@ -32,6 +33,7 @@ class ServicesHooksTest extends MediaWikiUnitTestCase {
 		$changeTagsStoreMock = $this->createMock( ChangeTagsStore::class );
 		$services->method( 'getLinkRendererFactory' )->willReturn( $linkRendererFactoryMock );
 		$services->method( 'getChangeTagsStore' )->willReturn( $changeTagsStoreMock );
+		$services->method( 'getService' )->willReturn( $this->createMock( TagCollector::class ) );
 		$config = new HashConfig( [
 			'HashtagsMakeTagsSystemManaged' => true,
 			'HashtagsRequireActiveTag' => false

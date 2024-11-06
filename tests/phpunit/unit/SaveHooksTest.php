@@ -5,6 +5,7 @@ use MediaWiki\CommentFormatter\CommentParser;
 use MediaWiki\Extension\Hashtags\HashtagCommentParser;
 use MediaWiki\Extension\Hashtags\HashtagCommentParserFactory;
 use MediaWiki\Extension\Hashtags\SaveHooks;
+use MediaWiki\Extension\Hashtags\TagCollector;
 use MediaWiki\Revision\RevisionLookup;
 use MediaWiki\Revision\RevisionRecord;
 use Wikimedia\Rdbms\IConnectionProvider;
@@ -28,8 +29,9 @@ class SaveHooksTest extends MediaWikiUnitTestCase {
 		$commentParser = $this->createMock( HashtagCommentParser::class );
 		$commentParserFactory->method( 'create' )->willReturn( $commentParser );
 		$commentParser->method( 'preprocess' );
-		$commentParser->method( 'getAllTagsSeen' )->willReturn( $tags );
-		return new SaveHooks( $commentParserFactory, $changeTagsStore, $dbProvider, $revisionLookup );
+		$tagCollector = $this->createMock( TagCollector::class );
+		$tagCollector->method( 'getTagsSeen' )->willReturn( $tags );
+		return new SaveHooks( $commentParserFactory, $changeTagsStore, $dbProvider, $revisionLookup, $tagCollector );
 	}
 
 	public static function provideOnArticleRevisionVisibilitySet() {
@@ -110,27 +112,6 @@ class SaveHooksTest extends MediaWikiUnitTestCase {
 		$this->assertEqualsCanonicalizing( $logEntry->getTags(), $tags );
 	}
 
-	public function testGetTagsFromEditSummaryThrows() {
-		$dbProvider = $this->createMock( IConnectionProvider::class );
-		$changeTagsStore = $this->createMock( ChangeTagsStore::class );
-		$revisionLookup = $this->createMock( RevisionLookup::class );
-		$revisionRecord = $this->createMock( RevisionRecord::class );
-		$comment = $this->createMock( CommentStoreComment::class );
-		$comment->text = 'edit summary';
-		$revisionRecord->method( 'getComment' )->willReturn( $comment );
-		$revisionLookup->method( 'getRevisionById' )->willReturn( $revisionRecord );
-		$commentParserFactory = $this->createMock( HashtagCommentParserFactory::class );
-		$commentParser = $this->createMock( CommentParser::class );
-		$commentParserFactory->method( 'create' )->willReturn( $commentParser );
-		$commentParser->method( 'preprocess' );
-		$hook = new SaveHooks( $commentParserFactory, $changeTagsStore, $dbProvider, $revisionLookup );
-
-		$logEntry = new ManualLogEntry( 'delete', 'delete' );
-		$logEntry->setComment( 'edit summary' );
-		$this->expectException( UnexpectedValueException::class );
-		$hook->onManualLogEntryBeforePublish( $logEntry );
-	}
-
 	public function testArticleRevisionVisibilitySetThrows() {
 		$dbProvider = $this->createMock( IConnectionProvider::class );
 		$changeTagsStore = $this->createMock( ChangeTagsStore::class );
@@ -144,7 +125,8 @@ class SaveHooksTest extends MediaWikiUnitTestCase {
 		$commentParser = $this->createMock( CommentParser::class );
 		$commentParserFactory->method( 'create' )->willReturn( $commentParser );
 		$commentParser->method( 'preprocess' );
-		$hook = new SaveHooks( $commentParserFactory, $changeTagsStore, $dbProvider, $revisionLookup );
+		$tagCollector = new TagCollector;
+		$hook = new SaveHooks( $commentParserFactory, $changeTagsStore, $dbProvider, $revisionLookup, $tagCollector );
 
 		$title = $this->createMock( Title::class );
 		$ids = [ 123 ];
@@ -165,7 +147,8 @@ class SaveHooksTest extends MediaWikiUnitTestCase {
 		$commentParser = $this->createMock( CommentParser::class );
 		$commentParserFactory->method( 'create' )->willReturn( $commentParser );
 		$commentParser->method( 'preprocess' );
-		$hook = new SaveHooks( $commentParserFactory, $changeTagsStore, $dbProvider, $revisionLookup );
+		$tagCollector = new TagCollector;
+		$hook = new SaveHooks( $commentParserFactory, $changeTagsStore, $dbProvider, $revisionLookup, $tagCollector );
 
 		$title = $this->createMock( Title::class );
 		$ids = [ 123 ];

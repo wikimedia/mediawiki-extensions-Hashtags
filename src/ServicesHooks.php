@@ -28,8 +28,6 @@ class ServicesHooks implements MediaWikiServicesHook {
 	/**
 	 * Convert an existing CommentParserFactory to one that returns our version of CommentParser
 	 *
-	 * Implemented as a separate static function because called in RCSaveHooks
-	 *
 	 * @param CommentParserFactory $factory
 	 * @param MediaWikiServices $services
 	 * @return HashtagCommentParserFactory
@@ -48,7 +46,8 @@ class ServicesHooks implements MediaWikiServicesHook {
 			$linkRenderer,
 			$changeTagsStore,
 			$services->getSpecialPageFactory(),
-			$options
+			$options,
+			$services->getService( 'Hashtags:TagCollector' )
 		);
 	}
 }
