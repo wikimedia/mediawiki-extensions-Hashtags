@@ -84,6 +84,27 @@ class SaveHooksTest extends MediaWikiUnitTestCase {
 		}
 	}
 
+	public function testOnRCSave() {
+		$rc = $this->createMock( RecentChange::class );
+		$rc->method( 'getAttribute' )->willReturnCallback(
+			static function ( $atr ) {
+				return $atr === 'rc_comment' ? 'Test #foo #bár' : '';
+			}
+		);
+		$newTags = [];
+		$rc->method( 'addTags' )->willReturnCallback(
+			static function ( $tags ) use ( &$newTags ) {
+				$newTags = array_merge( $newTags, (array)$tags );
+			}
+		);
+		$saveHook = $this->getHook( [ 'hashtag-foo', 'hashtag-bár' ] );
+
+		$saveHook->onRecentChange_save( $rc );
+
+		$this->assertContains( 'hashtag-foo', $newTags );
+		$this->assertContains( 'hashtag-bár', $newTags );
+	}
+
 	public function testOnRevisionFromEditComplete() {
 		$wikiPage = $this->createMock( WikiPage::class );
 		$comment = $this->createMock( CommentStoreComment::class );
