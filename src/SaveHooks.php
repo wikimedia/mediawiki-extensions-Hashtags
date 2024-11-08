@@ -6,6 +6,7 @@ use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\CommentFormatter\CommentParserFactory;
 use MediaWiki\Hook\ArticleRevisionVisibilitySetHook;
 use MediaWiki\Hook\ManualLogEntryBeforePublishHook;
+use MediaWiki\Hook\RecentChange_saveHook;
 use MediaWiki\Page\Hook\RevisionFromEditCompleteHook;
 use MediaWiki\Revision\RevisionLookup;
 use MediaWiki\Revision\RevisionRecord;
@@ -14,7 +15,8 @@ use Wikimedia\Rdbms\IConnectionProvider;
 class SaveHooks implements
 	RevisionFromEditCompleteHook,
 	ManualLogEntryBeforePublishHook,
-	ArticleRevisionVisibilitySetHook
+	ArticleRevisionVisibilitySetHook,
+	RecentChange_saveHook
 {
 
 	private HashtagCommentParserFactory $cpFactory;
@@ -39,6 +41,17 @@ class SaveHooks implements
 
 	// Previously we used onRecentChange_save, however onRevisionFromEditComplete
 	// combined with onManualLogEntryBeforePublish seems to cover more cases.
+
+	/**
+	 * @inheritDoc
+	 */
+	public function onRecentChange_save( $rc ) {
+		// This is unideal as it misses revisions with RC_SUPPRESS
+		// However is needed to work around T379152
+		$comment = $rc->getAttribute( "rc_comment" );
+		$newTags = $this->tagCollector->getTagsSeen( $this->cpFactory, $comment );
+		$rc->addTags( $newTags );
+	}
 
 	/**
 	 * @note In certain cases, this hook ignores the $tags parameter. Most of those

@@ -22,6 +22,7 @@
 	"Hooks": {
 		"MediaWikiServices": "service",
 		"RevisionFromEditComplete": "save",
+		"RecentChange_save": "save",
 		"ManualLogEntryBeforePublish": "save",
 		"ArticleRevisionVisibilitySet": "save",
 		"ListDefinedTags": "tag",
