@@ -47,4 +47,45 @@ class TagCollectorTest extends MediaWikiUnitTestCase {
 		$this->expectException( LogicException::class );
 		$a->getTagsSeen( $hashtagCommentParserF, 'foo' );
 	}
+
+	public function testReenterant() {
+		$a = new TagCollector;
+		$hashtagCommentParserF = $this->createMock( HashtagCommentParserFactory::class );
+		$hashtagCommentParser = $this->createMock( HashtagCommentParser::class );
+		$hashtagCommentParserF->method( 'create' )->willReturn( $hashtagCommentParser );
+		$hashtagCommentParser->method( 'preprocess' )->willReturnCallback(
+			static function ( $str ) use ( $a, $hashtagCommentParserF ) {
+				$a->getTagsSeen( $hashtagCommentParserF, 'baz' );
+			}
+		);
+		$this->expectException( LogicException::class );
+		$a->getTagsSeen( $hashtagCommentParserF, 'foo' );
+	}
+
+	public function testDisconnected() {
+		$a = new TagCollector;
+		$hashtagCommentParserF = $this->createMock( HashtagCommentParserFactory::class );
+		$hashtagCommentParser = $this->createMock( HashtagCommentParser::class );
+		$hashtagCommentParserF->method( 'create' )->willReturn( $hashtagCommentParser );
+		$hashtagCommentParser->method( 'preprocess' )->willReturn( '' );
+		$this->expectException( LogicException::class );
+		$a->getTagsSeen( $hashtagCommentParserF, 'foo' );
+	}
+
+	public function testGetTagsSeen() {
+		$a = new TagCollector;
+		$hashtagCommentParserF = $this->createMock( HashtagCommentParserFactory::class );
+		$hashtagCommentParser = $this->createMock( HashtagCommentParser::class );
+		$hashtagCommentParserF->method( 'create' )->willReturn( $hashtagCommentParser );
+		$hashtagCommentParser->method( 'preprocess' )->willReturnCallback(
+			static function ( $str ) use ( $a, $hashtagCommentParser ) {
+				$a->startParse( $hashtagCommentParser );
+				$a->submitTag( $hashtagCommentParser, 'foo' );
+				$a->submitTag( $hashtagCommentParser, 'bar' );
+			}
+		);
+		$res = $a->getTagsSeen( $hashtagCommentParserF, 'foo' );
+		$this->assertEqualsCanonicalizing( $res, [ 'foo', 'bar' ] );
+	}
+
 }
