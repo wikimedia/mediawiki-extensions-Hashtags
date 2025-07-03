@@ -9,6 +9,7 @@ use MediaWiki\Extension\Hashtags\HashtagCommentParserFactory;
 use MediaWiki\Extension\Hashtags\TagCollector;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\SpecialPage\SpecialPageFactory;
+use MediaWiki\Title\Title;
 use Wikimedia\TestingAccessWrapper;
 
 /**

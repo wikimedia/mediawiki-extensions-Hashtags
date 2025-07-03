@@ -6,6 +6,7 @@ use MediaWiki\Extension\Hashtags\HashtagCommentParser;
 use MediaWiki\Extension\Hashtags\HashtagCommentParserFactory;
 use MediaWiki\Extension\Hashtags\TagCollector;
 use MediaWiki\Linker\LinkRenderer;
+use MediaWiki\Title\TitleValue;
 use Wikimedia\TestingAccessWrapper;
 
 /**
@@ -27,7 +28,7 @@ class HashtagCommentParserTest extends MediaWikiUnitTestCase {
 
 		$linkRenderer = $this->createMock( LinkRenderer::class );
 		$linkRenderer->method( 'makeLink' )->willReturnCallback( static function ( $target, $text ) {
-			return '<a href="' . $target->getDBKey() . '">' . htmlspecialchars( $text ) . '</a>';
+			return '<a href="' . $target->getDBkey() . '">' . htmlspecialchars( $text ) . '</a>';
 		} );
 		$changeTagsStore = $this->createMock( ChangeTagsStore::class );
 		$changeTagsStore->method( 'listExplicitlyDefinedTags' )->willReturn( [

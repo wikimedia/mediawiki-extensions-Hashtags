@@ -1,5 +1,10 @@
 <?php
+
+use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\Hashtags\ServicesHooks;
+use MediaWiki\SpecialPage\SpecialPage;
+use MediaWiki\Title\Title;
+use MediaWiki\Title\TitleValue;
 use Wikimedia\TestingAccessWrapper;
 
 /**
@@ -98,15 +103,15 @@ class HashtagCommentParserIntegrationTest extends MediaWikiIntegrationTestCase {
 			$this->getServiceContainer()->getCommentParserFactory()
 		);
 		$target = Title::castFromLinkTarget( $factory->getDefaultTagTarget() );
-		$page = SpecialPage::GetTitleFor( 'Recentchanges' );
+		$page = SpecialPage::getTitleFor( 'Recentchanges' );
 		$this->assertTrue( $page->isSamePageAs( $target ), 'normal page' );
 
-		$log = SpecialPage::GetTitleFor( 'Log' );
+		$log = SpecialPage::getTitleFor( 'Log' );
 		RequestContext::getMain()->setTitle( $log );
 		$target = Title::castFromLinkTarget( $factory->getDefaultTagTarget() );
 		$this->assertTrue( $log->isSamePageAs( $target ), 'log' );
 
-		$moveLog = SpecialPage::GetTitleFor( 'Log', 'move' );
+		$moveLog = SpecialPage::getTitleFor( 'Log', 'move' );
 		RequestContext::getMain()->setTitle( $moveLog );
 		$target = Title::castFromLinkTarget( $factory->getDefaultTagTarget() );
 		$this->assertTrue( $log->isSamePageAs( $target ), 'move log' );

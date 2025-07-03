@@ -8,6 +8,7 @@ use MediaWiki\Extension\Hashtags\SaveHooks;
 use MediaWiki\Extension\Hashtags\TagCollector;
 use MediaWiki\Revision\RevisionLookup;
 use MediaWiki\Revision\RevisionRecord;
+use MediaWiki\Title\Title;
 use Wikimedia\Rdbms\IConnectionProvider;
 
 /**
