@@ -4,7 +4,7 @@
 			"Bawolff"
 		]
 	},
-	"hashtags-desc": "Allows users to tag edits using hashtag style tagging (e.g. putting #example in an edit summary",
+	"hashtags-desc": "Allows users to tag edits using hashtag style tagging (e.g. putting #example in an edit summary)",
 	"hashtags-tag-reserved": "Cannot create this tag name as it is reserved by the Hashtags extension.",
 	"hashtags-invalid-tags": "Tags listed on this page will not be considered hashtags. Write each tag on a line by itself, starting with #."
 }
