@@ -2,6 +2,7 @@
 
 use MediaWiki\ChangeTags\ChangeTagsStore;
 use MediaWiki\CommentFormatter\CommentParser;
+use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\Extension\Hashtags\HashtagCommentParser;
 use MediaWiki\Extension\Hashtags\HashtagCommentParserFactory;
 use MediaWiki\Extension\Hashtags\SaveHooks;
