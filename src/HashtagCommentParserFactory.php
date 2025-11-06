@@ -2,6 +2,7 @@
 namespace MediaWiki\Extension\Hashtags;
 
 use MediaWiki\ChangeTags\ChangeTagsStore;
+use MediaWiki\CommentFormatter\CommentParser;
 use MediaWiki\CommentFormatter\CommentParserFactory;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Context\IContextSource;
@@ -51,7 +52,7 @@ class HashtagCommentParserFactory extends CommentParserFactory {
 	 * @inheritDoc
 	 * Make a HashtagCommentParser guessing the tag target based on current page
 	 */
-	public function create() {
+	public function create(): CommentParser {
 		$target = $this->getDefaultTagTarget();
 		return $this->createWithTagTarget( $target );
 	}
